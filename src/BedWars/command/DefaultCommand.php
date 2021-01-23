@@ -21,7 +21,9 @@ use pocketmine\utils\TextFormat;
 use pocketmine\math\Vector3;
 
 class DefaultCommand extends PluginCommand {
-
+	
+	/** @var BedWars $plugin */
+	private $plugin;
     /** @var array $errors */
     private $cachedCommandResponse = [];
     /** @var array $cachedResponses */
@@ -508,7 +510,7 @@ class DefaultCommand extends PluginCommand {
     /**
      * @return BedWars|Plugin $bedwars
      */
-    public function getPlugin(): Plugin {
+    public function getPlugin() : Plugin {
         return $this->plugin;
     }
 }
