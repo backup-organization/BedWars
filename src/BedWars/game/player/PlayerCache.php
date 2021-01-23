@@ -1,34 +1,31 @@
 <?php
 
-
 namespace BedWars\game\player;
 
 use pocketmine\Player;
 use pocketmine\level\Position;
 use pocketmine\entity\EffectInstance;
 
-
-class PlayerCache
-{
+class PlayerCache {
+	
     /** @var Player $player */
     private $player;
     /** @var string $nametag */
     private $nametag;
     /** @var array $inventoryContents */
     private $inventoryContents = array();
-    /** @var int $health */
+    /** @var float $health */
     private $health;
     /** @var int $maxHealth */
     private $maxHealth;
-    /** @var int $food */
+    /** @var float $food */
     private $food;
     /** @var Position $position */
     private $position;
     /** @var EffectInstance[] $effects */
     private $effects;
 
-    public function __construct(Player $player)
-    {
+    public function __construct(Player $player) {
         $this->nametag = $player->getNameTag();
         $this->inventoryContents = $player->getInventory()->getContents();
         $this->health = $player->getHealth();
@@ -38,8 +35,8 @@ class PlayerCache
         $this->effects = $player->getEffects();
         $this->player = $player;
     }
-
-    public function load(){
+    
+    public function load() {
         $this->player->setNameTag($this->nametag);
         $this->player->getInventory()->setContents($this->inventoryContents);
         $this->player->setHealth($this->health);
@@ -50,5 +47,4 @@ class PlayerCache
             $this->player->addEffect($effect);
         }
     }
-
 }

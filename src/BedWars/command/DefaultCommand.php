@@ -124,7 +124,7 @@ class DefaultCommand extends PluginCommand {
             unset($this->cachedCommandResponse[$player->getRawUniqueId()]);
         }
         $this->cachedFormResponse[$command] = $form;
-        $refOb = new ReflectionObject($this->cachedFormResponse[$command]);
+        $refOb = new \ReflectionObject($this->cachedFormResponse[$command]);
         $property = $refOb->getProperty('data');
         $property->setAccessible(true);
         $clonedData = $property->getValue($this->cachedFormResponse[$command]);
@@ -149,7 +149,7 @@ class DefaultCommand extends PluginCommand {
                 if($data === null) {
                     return;
                 }
-                $gameClicked = $this->plugin->games($data);
+                $gameClicked = $this->plugin->games[$data];
             });
             foreach($this->plugin->games as $game){
                 $listForm->addButton(TextFormat::YELLOW . $game->getName() . "\n" . TextFormat::RESET . "Click to edit");
