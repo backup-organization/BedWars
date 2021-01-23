@@ -6,8 +6,9 @@ use BedWars\BedWars;
 use BedWars\game\shop\ItemShop;
 use BedWars\game\shop\UpgradeShop;
 use BedWars\utils\Utils;
-use pocketmine\block\Bed;
 use pocketmine\block\Block;
+use pocketmine\block\Bed;
+use pocketmine\block\TNT;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\block\SignChangeEvent;
@@ -240,6 +241,7 @@ class GameListener implements Listener {
      */
     public function onPlace(BlockPlaceEvent $event) : void {
         $player = $event->getPlayer();
+        $block = $event->getBlock();
         $playerGame = $this->plugin->getPlayerGame($player);
         if($playerGame !== null){
             if($playerGame->getState() == Game::STATE_LOBBY){
@@ -253,8 +255,8 @@ class GameListener implements Listener {
                         $playerGame->placedBlocks[] = Utils::vectorToString(":", $event->getBlock());
                     }
                 }
-                if($tnt = $event->getBlock()->getId() === Block::TNT){
-                    $tnt = $event->getBlock()->ignite();
+                if($block instanceof TNT){
+                    $block->ignite();
                     $player->getInventory()->removeItem(Item::get(Item::TNT));
                     $event->setCancelled(true);
                 }
@@ -359,7 +361,7 @@ class GameListener implements Listener {
         }
         if($game == null)return;
         $newList = [];
-        foreach($ev->getBlockList() as $block){
+        foreach($event->getBlockList() as $block){
             if(in_array(Utils::vectorToString(":", $block->asVector3()), $game->placedBlocks)){
                 $newList[] = $block;
             }
@@ -376,19 +378,19 @@ class GameListener implements Listener {
         if($packet instanceof ModalFormResponsePacket){
             $playerGame = $this->plugin->getPlayerGame($player);
             if($playerGame == null)return;
-              $data = json_decode($packet->formData);
-              if(is_null($data)){
+            $data = json_decode($packet->formData);
+            if(is_null($data)){
                 return;
-              }
-                if($packet->formId === 50){
-                    ItemShop::sendPage($player, intval($data));
-                } else if($packet->formId < 100){
-                    ItemShop::handleTransaction(($packet->formId), json_decode($packet->formData), $player, $this->plugin);
-                } else if($packet->formId === 100){
-                    UpgradeShop::sendBuyPage(json_decode($packet->formData), $player, $this->plugin);
-                } else if($packet->formId > 100){
-                    UpgradeShop::handleTransaction(($packet->formId), $player, $this->plugin);
-                }
+            }
+            if($packet->formId == 50){
+                ItemShop::sendPage($player, intval($data));
+            } else if($packet->formId < 100){
+              	ItemShop::handleTransaction(($packet->formId), json_decode($packet->formData), $player, $this->plugin);
+            } else if($packet->formId == 100){
+                UpgradeShop::sendBuyPage(json_decode($packet->formData), $player, $this->plugin);
+            } else if($packet->formId > 100){
+              	UpgradeShop::handleTransaction(($packet->formId), $player, $this->plugin);
+            }
         }
     }
 }

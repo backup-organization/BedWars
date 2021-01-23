@@ -5,12 +5,11 @@ namespace BedWars\game;
 use BedWars\BedWars;
 use BedWars\game\entity\FakeItemEntity;
 use BedWars\utils\Utils;
+use pocketmine\Server;
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
 use pocketmine\level\particle\FloatingTextParticle;
 use pocketmine\level\Position;
-use pocketmine\plugin\PluginBase;
-use pocketmine\Server;
 use pocketmine\utils\TextFormat;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\StringTag;
@@ -50,16 +49,13 @@ class Generator {
 
     /**
      * Generator constructor.
-     * @param BedWars $plugin
      * @param int $itemID
      * @param int $repeatRate
      * @param Position $position
      * @param bool $spawnText
      * @param bool $spawnBlock
-     * @param Team|null $playerTeam
      */
-    public function __construct(BedWars $plugin, int $itemID, int $repeatRate, Position $position, bool $spawnText, bool $spawnBlock, Team $playerTeam = null) {
-    	$this->plugin = $plugin;
+    public function __construct(int $itemID, int $repeatRate, Position $position, bool $spawnText, bool $spawnBlock) {
         $this->itemID = $itemID;
         $this->repeatRate = $repeatRate;
         $this->position = $position;
@@ -71,7 +67,7 @@ class Generator {
             $this->floatingText = new FloatingTextParticle($position->add(0.5, 3, 0.5), $text, "");
         }
         if($this->spawnBlock){
-           $path = $this->plugin->getServer()->getDataPath() . "plugin_data/BedWars/skins/" . $itemID . ".png";
+           $path = Server::getInstance()->getDataPath() . "plugin_data/BedWars/skins/" . $itemID . ".png";
            $skin = Utils::getSkinFromFile($path);
            $nbt = Entity::createBaseNBT($position->add(0.5, 2.3, 0.5), null);
            $nbt->setTag(new CompoundTag('Skin', [
@@ -104,7 +100,6 @@ class Generator {
         }
         $this->dynamicSpawnTime--;
         if($this->dynamicSpawnTime == 0){
-            $this->dynamicSpawnTime = $this->repeatRate;
             $this->position->getLevel()->dropItem($this->position->asVector3(), Item::get($this->itemID));
         }
     }

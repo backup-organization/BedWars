@@ -116,9 +116,6 @@ class ItemShop {
      * @param BedWars $plugin
      */
     public static function handleTransaction(int $id, int $data, Player $player, BedWars $plugin) {
-        if(is_null($data)){
-            return;
-        }
         $itemData = self::$itemData[$id][$data];
         $amount = $itemData['amount'];
         $price = $itemData['price'];

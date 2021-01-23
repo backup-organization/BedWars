@@ -274,7 +274,7 @@ class Game {
          }
          $this->cachedPlayers[$player->getRawUniqueId()] = new PlayerCache($player);
          $this->plugin->getServer()->loadLevel($this->worldName);
-         $player->teleport($this->plugin->getServer()>getLevelByName($this->worldName)->getSafeSpawn()); 
+         $player->teleport($this->plugin->getServer()->getLevelByName($this->worldName)->getSafeSpawn()); 
          $player->teleport($this->lobby);
          $this->players[$player->getRawUniqueId()] = $player;
          $this->broadcastMessage(TextFormat::GRAY . $player->getName() . " " . TextFormat::YELLOW . "has joined the game " . TextFormat::GOLD . "(" . TextFormat::AQUA .  count($this->players) . TextFormat::YELLOW . "/" . TextFormat::AQUA .  $this->maxPlayers . TextFormat::YELLOW .  ")");
@@ -335,8 +335,7 @@ class Game {
             $delay = $generatorData['refreshRate'];
             $vector = Utils::stringToVector(":", $generator['position']);
             $position = new Position($vector->x, $vector->y, $vector->z,$this->plugin->getServer()->getLevelByName($this->worldName));
-            $this->generators[] = new Generator($item, $delay,$position, $spawnText, $spawnBlock);
-
+            $this->generators[] = new Generator($item, $delay, $position, $spawnText, $spawnBlock);
         }
     }
 
@@ -467,14 +466,14 @@ class Game {
             break;
         }
         foreach(array_merge([$helmet, $chestplate], !$hasArmorUpdated ? [$leggings, $boots] : []) as $armor){
-            $armor->setCustomColor(Utils::colorIntoObject($team->getColor()));
+        	if($armor instanceof Armor){
+        	    $armor->setCustomColor(Utils::colorIntoObject($team->getColor()));
+            }
         }
         $armorUpgrade = $team->getUpgrade('armorProtection');
         if($armorUpgrade > 0){
             foreach([$helmet, $chestplate, $leggings, $boots] as $armor){
-            	if($armor instanceof Armor){
-                    $armor->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantmentByName(Enchantment::PROTECTION)), $armorUpgrade);
-                }
+            	$armor->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantmentByName(Enchantment::PROTECTION)), $armorUpgrade);
             }
         }
         $player->getArmorInventory()->setHelmet($helmet);
