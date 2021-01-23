@@ -8,36 +8,36 @@ use BedWars\utils\Utils;
 use BedWars\libs\jojoe77777\FormAPI\CustomForm;
 use BedWars\libs\jojoe77777\FormAPI\SimpleForm;
 use BedWars\libs\jojoe77777\FormAPI\Form;
-use pocketmine\block\Block;
-use pocketmine\block\TNT;
+use pocketmine\plugin\Plugin;
+use pocketmine\Player;
 use pocketmine\command\CommandSender;
 use pocketmine\command\PluginCommand;
+use pocketmine\block\Block;
+use pocketmine\block\TNT;
 use pocketmine\item\Bed;
 use pocketmine\level\Level;
-use pocketmine\Player;
-use pocketmine\plugin\Plugin;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
 use pocketmine\math\Vector3;
-use pocketmine\Server;
 
-class DefaultCommand extends PluginCommand
-{
+class DefaultCommand extends PluginCommand {
 
     /** @var array $errors */
-    private $cachedCommandResponse = array();
+    private $cachedCommandResponse = [];
     /** @var array $cachedResponses */
-    private $cachedFormResponse = array();
+    private $cachedFormResponse = [];
 
     /**
      * DefaultCommand constructor.
-     * @param BedWars $owner
+     * @param BedWars $plugin
      */
-    public function __construct(BedWars $owner)
-    {
-        parent::__construct("bedwars", $owner);
-        parent::setDescription("BedWars command");
-        parent::setPermission("bedwars.command");
+    public function __construct(BedWars $plugin) {
+    	$this->plugin = $plugin;
+        parent::__construct("bedwars", $plugin);
+        $this->setPermission("bedwars.command");
+        $this->setAliases(["bw"]);
+        $this->setUsage("/bedwars");
+        $this->setDescription("BedWars Command");
     }
 
     /**
@@ -139,13 +139,10 @@ class DefaultCommand extends PluginCommand
      * @param array $args
      * @return bool|mixed|void
      */
-    public function execute(CommandSender $sender, string $commandLabel, array $args)
-    {
+    public function execute(CommandSender $sender, string $commandLabel, array $args) {
         if(empty($args[0])){
-
             return;
         }
-
         switch(strtolower($args[0])){
             case "list";
             commandList:
@@ -153,11 +150,8 @@ class DefaultCommand extends PluginCommand
                 if($data === null) {
                     return;
                 }
-
-                $gameClicked = $this->getPlugin()->games((int)$data);
-
+                $gameClicked = $this->getPlugin()->games($data);
             });
-
             foreach($this->getPlugin()->games as $game){
                 $listForm->addButton(TextFormat::YELLOW . $game->getName() . "\n" . TextFormat::RESET . "Click to edit");
             }
@@ -167,91 +161,77 @@ class DefaultCommand extends PluginCommand
                 $sender->sendMessage(TextFormat::RED . "This command can be executed only in game");
                 return;
             }
-
             commandCreate:
-
             $createForm = new CustomForm(function(Player $player, ?array $data){
                 if($data === null) {
                     return;
                 }
-
-                $error = array();
-
+                $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
                     if(strlen($data[0]) < 5){
                         $error[0] = TextFormat::RED . "Too short";
                         goto b;
                     }
-
                     if($this->getPlugin()->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Already exists";
                     }
-                }else{
+                } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
                 b:
-
                 if(isset($data[1]) && $data[1] !== ""){
                     if(!is_int((int)$data[1])){
                         $error[1] = TextFormat::RED . "Must be an Integer";
                         goto c;
                     }
-
                     if((int)$data[1] < 1){
                         $error[1] = TextFormat::RED . "Must be higher than 0";
                     }
-                }else{
+                } else {
                     $error[1] = TextFormat::RED . "Column can't be blank";
                 }
                 c:
-
                 if(isset($data[2]) && $data[2] !== ""){
                     if(!is_int((int)$data[2])){
                         $error[2] = TextFormat::RED . "Must be an Integer";
                         goto d;
                     }
-
                     if((int)$data[2] < 1){
                         $error[2] = TextFormat::RED . "Must be higher than 0";
                     }
-                }else{
+                } else {
                     $error[2] = TextFormat::RED . "Column can't be blank";
                 }
                 d:
-
                 if(isset($data[3]) && $data[3] !== ""){
                     if(!is_int((int)$data[3])){
                         $error[3] = TextFormat::RED . "Must be an Integer";
                         goto e;
                     }
-
                     if((int)$data[3] < 1){
                         $error[3] = TextFormat::RED . "Must be higher than 0";
                     }
-
-                }else{
+                } else {
                     $error[3] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(isset($data[4]) && $data[4] !== ""){
                     if(strlen($data[4]) <= 1){
                         $error[4] = TextFormat::RED . "Too short";
                     }
-                    if(!Server::getInstance()->loadLevel($data[4])){
+                    if(!this->getPlugin()->getServer()->loadLevel($data[4])){
                         $error[4] = TextFormat::RED . "Level not found or corrupt";
                     }
-                    if(!Server::getInstance()->isLevelLoaded($data[4])){
+                    if(!this->getPlugin()->getServer()->isLevelLoaded($data[4])){
                         $error[4] = TextFormat::RED . "Level not loaded";
                     }
-                }else{
+                } else {
                     $error[4] = TextFormat::RED . "Column can't be blank";
                 }
                 e:
-
                 if(count($error) > 0){
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'create', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['create'], 'create');
-                }else{
+                } else {
                     $this->getPlugin()->createGame($data[0], $data[1], $data[2], $data[3], $data[4]);
                     $player->sendMessage(TextFormat::GREEN . "Game created");
                 }
@@ -263,20 +243,17 @@ class DefaultCommand extends PluginCommand
                 $sender->sendMessage(TextFormat::RED . "This command can be executed only in game");
                 return;
             }
-
             commandAddteam:
-
             $addteamForm = new CustomForm(function(Player $player, ?array $data){
                 if($data === null){
                     return;
                 }
-
-                $error = array();
+                $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
                     if(!$this->getPlugin()->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
-                }else{
+                } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
                 if(isset($data[1]) && $data[1] !== ""){
@@ -289,18 +266,16 @@ class DefaultCommand extends PluginCommand
                     if(!$find){
                         $error[1] = TextFormat::RED . "Invalid team";
                     }
-
                     if($this->getPlugin()->teamExists($data[0], array_keys(BedWars::TEAMS)[$data[1]])){
                         $error[1] = TextFormat::RED . "Already exists for " . $data[0];
                     }
-                }else{
+                } else {
                     $error[1] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(count($error) > 0){
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'addteam', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['addteam'], 'addteam');
-                }else{
+                } else {
                     $this->getPlugin()->addTeam($data[0], array_keys(BedWars::TEAMS)[$data[1]]);
                     $player->sendMessage(TextFormat::GREEN . "Team added");
                 }
@@ -312,28 +287,23 @@ class DefaultCommand extends PluginCommand
                 $sender->sendMessage(TextFormat::RED . "This command can be executed only in game");
                 return;
             }
-
             commandDelete:
-
             $deleteForm = new CustomForm(function(Player $player, ?array $data){
                 if($data === null){
                     return;
                 }
-
-                $error = array();
-
+                $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
                     if(!$this->getPlugin()->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
-                }else{
+                } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(count($error) > 0){
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'delete', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['delete'], 'delete');
-                }else{
+                } else {
                     $this->getPlugin()->deleteGame($data[0]);
                     $player->sendMessage(TextFormat::GREEN . "Game deleted");
                 }
@@ -345,63 +315,58 @@ class DefaultCommand extends PluginCommand
                 $sender->sendMessage(TextFormat::RED . "This command can be executed only in game");
                 return;
             }
-
             $setlobbyForm = new CustomForm(function(Player $player, ?array $data){
                 if($data === null){
                     return;
                 }
-
-                $error = array();
-
+                $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
                     if(!$this->getPlugin()->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
-                }else{
+                } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
                 if(isset($data[1]) && $data[1] !== ""){
                     if(!is_numeric($data[1])){
                         $error[1] = TextFormat::RED . "Must be numeric";
                     }
-                }else{
+                } else {
                     $error[1] = TextFormat::RED . "Column can't be blank";
                 }
                 if(isset($data[2]) && $data[2] !== ""){
                     if(!is_numeric($data[2])){
                         $error[2] = TextFormat::RED . "Must be numeric";
                     }
-                }else{
+                } else{ 
                     $error[2] = TextFormat::RED . "Column can't be blank";
                 }
                 if(isset($data[3]) && $data[3] !== ""){
                     if(!is_numeric($data[3])){
                         $error[3] = TextFormat::RED . "Must be numeric";
                     }
-                }else {
+                } else {
                     $error[3] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(isset($data[4]) && $data[4] !== ""){
-                    if(!Server::getInstance()->isLevelLoaded($data[4])){
+                    if(!$this->getPlugin()->getServer()->isLevelLoaded($data[4])){
                         $error[4] = TextFormat::RED . "Level not loaded";
                     }
-                }else {
+                } else {
                     $error[4] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(count($error) > 0){
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'setlobby', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['setlobby'], 'setlobby');
-                }else{
+                } else {
                     $level = $player->level;
                     $void_y = Level::Y_MAX;
-                     foreach ($level->getChunks() as $chunk) {
-                         for ($x = 0; $x < 16; ++$x) {
-                             for ($z = 0; $z < 16; ++$z) {
-                                 for ($y = 0; $y < $void_y; ++$y) {
+                     foreach($level->getChunks() as $chunk){
+                         for($x = 0; $x < 16; ++$x){
+                             for($z = 0; $z < 16; ++$z){
+                                 for($y = 0; $y < $void_y; ++$y){
                                       $block = $chunk->getBlockId($x, $y, $z);
-                                      if ($block !== Block::AIR) {
+                                      if($block !== Block::AIR){
                                            $void_y = $y;
                                           break;
                                       }
@@ -410,7 +375,6 @@ class DefaultCommand extends PluginCommand
                           }
                       }
                      --$void_y;
-
                     $this->getPlugin()->setLobby($data[0], $data[1], $data[2], $data[3], $data[4], $void_y);
                     $player->sendMessage(TextFormat::GREEN . "Lobby set");
                 }
@@ -422,62 +386,54 @@ class DefaultCommand extends PluginCommand
                 $sender->sendMessage(TextFormat::RED . "This command can be executed only in game");
                 return;
             }
-
             $setpositionForm = new CustomForm(function(Player $player, ?array $data){
                 if($data === null){
                     return;
                 }
-
-                $error = array();
-
+                $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
                     if(!$this->getPlugin()->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
-                }else{
+                } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(isset($data[1]) && $data[1] !== ""){
                     if(!$this->getPlugin()->teamExists($data[0], strtolower(array_keys(BedWars::TEAMS)[$data[1]]))){
                         $error[1] = TextFormat::RED . "Doesn't exist";
                     }
-                }else{
+                } else {
                     $error[1] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(isset($data[2]) && $data[2] !== ""){
                     if(!is_numeric($data[2])){
                         $error[2] = TextFormat::RED . "Must be numeric";
                     }
-                }else{
+                } else {
                     $error[2] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(isset($data[3]) && $data[3] !== ""){
                     if(!is_numeric($data[3])){
                         $error[3] = TextFormat::RED . "Must be numeric";
                     }
-                }else{
+                } else {
                     $error[3] = TextFormat::RED . "Column can't be blank";
                 }
                 if(isset($data[4]) && $data[4] !== ""){
                     if(!is_numeric($data[4])){
                         $error[4] = TextFormat::RED . "Must be numeric";
                     }
-                }else {
+                } else {
                     $error[4] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(count($error) > 0){
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'setposition', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['setposition'], 'setposition');
-                }else{
+                } else {
                     $this->getPlugin()->setTeamPosition($data[0], array_keys(BedWars::TEAMS)[$data[1]], $data[2], (int)$data[3], (int)$data[4], (int)$data[5], (float) $player->getYaw(), (float) $player->getPitch());
                     $player->sendMessage(TextFormat::GREEN . "Position set");
                 }
             });
-
             $this->sendFormCustom($sender, $setpositionForm, 'setposition');
             break;
             case "setbed";
@@ -485,39 +441,33 @@ class DefaultCommand extends PluginCommand
                 $sender->sendMessage(TextFormat::RED . "This command can be executed only in game");
                 return;
             }
-
             $setbedForm = new CustomForm(function(Player $player, ?array $data){
-
                 if($data === null){
                     return;
                 }
-
-                $error = array();
-
+                $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
                     if(!$this->getPlugin()->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
-                }else{
+                } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
                 if(isset($data[1]) && $data[1] !== ""){
                     if(!$this->getPlugin()->teamExists($data[0], strtolower(array_keys(BedWars::TEAMS)[$data[1]]))){
                         $error[1] = TextFormat::RED . "Doesn't exist";
                     }
-                }else{
+                } else {
                     $error[1] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(count($error) > 0){
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'setbed', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['setbed'], 'setbed');
-                }else{
+                } else {
                     $this->getPlugin()->bedSetup[$player->getRawUniqueId()] = ['game' => $data[0], 'team' => array_keys(BedWars::TEAMS)[$data[1]], 'step' => 1];
                     $player->sendMessage(TextFormat::RED . "Break the bed");
                 }
             });
-
             $this->sendFormCustom($sender, $setbedForm, 'setbed');
             break;
             case "setgenerator";
@@ -525,28 +475,25 @@ class DefaultCommand extends PluginCommand
                 if($data === null){
                     return;
                 }
-
-                $error = array();
-
+                $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
                     if(!$this->getPlugin()->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
-                }else{
+                } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
                 $gens = array("Diamond", "Emerald", "Gold", "Iron");
                 $generator = null;
                 if(isset($data[1]) && $data[1] !== ""){
                     $generator = strtolower($gens[$data[1]]);
-                }else{
+                } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
-
                 if(count($error) > 0){
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'setgenerator', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['setgenerator'], 'setgenerator');
-                }else if($generator !== null){
+                } else if($generator !== null){
                     $arenaData = $this->getPlugin()->getGameData($data[0]);
                     $arenaData['generatorInfo'][$data[0]][] = ['type' => $generator, 'position' => Utils::vectorToString("", $player), 'game'];
                     $this->getPlugin()->writeGameData($data[0], $arenaData);
@@ -556,5 +503,12 @@ class DefaultCommand extends PluginCommand
             $this->sendFormCustom($sender, $setgeneratorForm, 'setgenerator');
             break;
         }
+    }
+    
+    /**
+     * @return BedWars|Plugin $bedwars
+     */
+    public function getPlugin(): Plugin {
+        return $this->plugin;
     }
 }

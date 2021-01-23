@@ -1,38 +1,32 @@
 <?php
 
-
 namespace BedWars;
 
-
-use pocketmine\block\utils\SignText;
-use pocketmine\item\Item;
-use pocketmine\level\Level;
-use pocketmine\Player;
-use pocketmine\scheduler\Task;
-use pocketmine\tile\Sign;
-use pocketmine\utils\TextFormat;
-use pocketmine\math\Vector3;
-use pocketmine\plugin\Plugin;
-use pocketmine\plugin\PluginBase;
 use BedWars\command\DefaultCommand;
 use BedWars\game\Game;
 use BedWars\game\GameListener;
 use BedWars\game\Team;
+use pocketmine\plugin\PluginBase;
+use pocketmine\Player;
+use pocketmine\block\utils\SignText;
+use pocketmine\item\Item;
+use pocketmine\level\Level;
+use pocketmine\tile\Sign;
+use pocketmine\utils\TextFormat;
+use pocketmine\math\Vector3;
 
-
-class BedWars extends PluginBase
-{
+class BedWars extends PluginBase {
 
     const PREFIX = TextFormat::BOLD . TextFormat::DARK_RED . "BedWars " . TextFormat::RESET;
 
     /** @var Game[] $games */
-    public $games = array();
+    public $games = [];
 
     /** @var array $signs */
-    public $signs = array();
+    public $signs = [];
 
     /** @var array $bedSetup */
-    public $bedSetup = array();
+    public $bedSetup = [];
 
     /** @var string $serverWebsite */
     public $serverWebsite;
@@ -60,18 +54,14 @@ class BedWars extends PluginBase
         'emerald' => ['item' => Item::EMERALD, 'spawnText' => true, 'spawnBlock' => true, 'refreshRate' => 60]
     ];
 
-    public function onEnable() : void
-    {
+    public function onEnable() : void {
     	@mkdir($this->getDataFolder() . "games");
         @mkdir($this->getDataFolder() . "skins");
         $this->saveResource("skins/264.png");
         $this->saveResource("skins/388.png");
         $this->saveDefaultConfig();
         $this->serverWebsite = $this->getConfig()->get('website');
-
-        $this->getScheduler()->scheduleRepeatingTask(
-            new SignUpdater($this), 20
-        );
+        $this->getScheduler()->scheduleRepeatingTask(new SignUpdater($this), 20);
         $this->getServer()->getPluginManager()->registerEvents(new GameListener($this), $this);
 
         foreach(glob($this->getDataFolder() . "games/*.json") as $location){
@@ -96,7 +86,7 @@ class BedWars extends PluginBase
      * @param string $id
      * @return array|null
      */
-    public function getGameData(string $id) : ?array{
+    public function getGameData(string $id) : ?array {
         if(!$this->gameExists($id))return null;
 
         $location = $this->gamePath($id);
@@ -111,7 +101,7 @@ class BedWars extends PluginBase
      * @param int $playersPerTeam
      * @param int $startTime
      */
-    public function createGame(string $id, int $minPlayers, int $playersPerTeam, int $startTime, string $world) : void{
+    public function createGame(string $id, int $minPlayers, int $playersPerTeam, int $startTime, string $world) : void {
         $dataStructure = [
             'name' => $id,
             'minPlayers' => $minPlayers,
@@ -128,7 +118,7 @@ class BedWars extends PluginBase
     /**
      * @param string $id
      */
-    public function deleteGame(string $id) : void{
+    public function deleteGame(string $id) : void {
         unlink($this->gamePath($id));
     }
 
@@ -139,7 +129,7 @@ class BedWars extends PluginBase
      * @param int $z
      * @param string $levelName
      */
-    public function setLobby(string $id, int $x, int $y, int $z, string $levelName, int $voidY) : void{
+    public function setLobby(string $id, int $x, int $y, int $z, string $levelName, int $voidY) : void {
         $file = file_get_contents($path = $this->gamePath($id));
         $json = json_decode($file, true);
 
@@ -156,7 +146,7 @@ class BedWars extends PluginBase
      * @param int $y
      * @param int $z
      */
-    public function setTeamPosition(string $id, string $team, string $keyPos, int $x, int $y, int $z, float $yaw, float $pitch) : void{
+    public function setTeamPosition(string $id, string $team, string $keyPos, int $x, int $y, int $z, float $yaw, float $pitch) : void {
         $file = file_get_contents($path = $this->gamePath($id));
         $json = json_decode($file, true);
         $key = ['shop', 'upgrade', 'spawn'];
@@ -169,11 +159,11 @@ class BedWars extends PluginBase
      * @param string $id
      * @return array
      */
-    public function getTeams(string $id) : array{
+    public function getTeams(string $id) : array {
         $file = file_get_contents($this->gamePath($id));
         $json = json_decode($file, true);
 
-        $teams = array();
+        $teams = [];
         foreach($json['teamInfo'] as $name => $data){
             $teams[] = $name;
         }
@@ -184,7 +174,7 @@ class BedWars extends PluginBase
      * @param string $id
      * @param string $team
      */
-    public function addTeam(string $id, string $team){
+    public function addTeam(string $id, string $team) {
         $file = file_get_contents($path = $this->gamePath($id));
         $json = json_decode($file, true);
         $json['teamInfo'][$team] = ['spawnPos' => '', 'bedPos' => '', 'shopPos'];
@@ -196,7 +186,7 @@ class BedWars extends PluginBase
      * @param string $team
      * @return bool
      */
-    public function teamExists(string $id, string $team) : bool{
+    public function teamExists(string $id, string $team) : bool {
         $file = file_get_contents($this->gamePath($id));
         if($file == null){
             foreach($this->getServer()->getOnlinePlayers() as $p){
@@ -226,7 +216,7 @@ class BedWars extends PluginBase
      * @param string $gameName
      * @return bool
      */
-    public function isGameLoaded(string $gameName) : bool{
+    public function isGameLoaded(string $gameName) : bool {
         return isset($this->games[$gameName]);
     }
 
@@ -234,7 +224,7 @@ class BedWars extends PluginBase
      * @param string $id
      * @return string
      */
-    public function gamePath(string $id) : string{
+    public function gamePath(string $id) : string {
         return $this->getDataFolder() . "games/" . $id . ".json";
     }
 
@@ -242,7 +232,7 @@ class BedWars extends PluginBase
      * @param array $arenaData
      * @return bool
      */
-    public function validateGame(array $arenaData) : bool{
+    public function validateGame(array $arenaData) : bool {
         $requiredParams = [
             'name',
             'minPlayers',
@@ -269,7 +259,7 @@ class BedWars extends PluginBase
      * @param bool $isSpectator
      * @return Game|null
      */
-    public function getPlayerGame(Player $player, bool $isSpectator = false) : ?Game{
+    public function getPlayerGame(Player $player, bool $isSpectator = false) : ?Game {
         $isSpectator = false;
         foreach($this->games as $game){
             if(isset($game->players[$player->getRawUniqueId()]))return $game;
@@ -282,7 +272,7 @@ class BedWars extends PluginBase
      * @param Player $player
      * @return Team|null
      */
-    public function getPlayerTeam(Player $player) : ?Team{
+    public function getPlayerTeam(Player $player) : ?Team {
         $game = $this->getPlayerGame($player);
         if($game == null)return null;
 
@@ -294,7 +284,7 @@ class BedWars extends PluginBase
         return null;
     }
 
-    public function writeGameData(string $gameName, array $gameData) : void{
+    public function writeGameData(string $gameName, array $gameData) : void {
         $location = $this->getDataFolder() . "games/" . $gameName . ".json";
 
         file_put_contents($location, json_encode($gameData));
