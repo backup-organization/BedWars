@@ -3,13 +3,13 @@
 namespace BedWars\utils;
 
 use pocketmine\entity\Skin;
+use pocketmine\math\Vector3;
 use pocketmine\utils\Color;
 use pocketmine\utils\TextFormat;
-use pocketmine\math\Vector3;
 
 class Utils {
 
-    public const WOOL_COLOR = [
+    const WOOL_COLOR = [
         '§a' => 5,
         '§c' => 14,
         '§e' => 4,
@@ -20,8 +20,8 @@ class Utils {
     ];
 
     /**
-     * @param string $color
-     * @return int
+     * @param int $color
+     * @return string
      */
     public static function colorIntoWool(string $color) : int {
         return self::WOOL_COLOR[$color];
@@ -69,7 +69,7 @@ class Utils {
      * @param float $pitch
      * @return Vector3
      */
-    public static function stringToVector(string $delimeter, string $string, &$yaw = 0.0, &$pitch = 0.0) : Vector3 {
+    public static function stringToVector(string $delimeter, string $string, &$yaw = 0.0, &$pitch = 0.0) : Vector3{
         $split = explode($delimeter, $string);
         if(isset($split[3]) && isset($split[4])){
             $yaw = floatval($split[3]);
@@ -91,7 +91,7 @@ class Utils {
         }
         $string = "";
         foreach($array as $splitValue){
-            $string.= $splitValue . ":";
+            $string.=$splitValue . ":";
         }
         return $string;
     }
@@ -102,8 +102,8 @@ class Utils {
      */
     public static function rome(int $N) {
         $c='IVXLCDM';
-        for($a = 5, $b = $s = ''; $N; $b++, $a^ =7)
-            for($o = $N % $a, $N = $N / $a^ 0; $o--; $s = @$c[$o > 2 ? $b + $N - ($N & =- 2) + $o =1 : $b]. $s);
+        for($a=5,$b=$s='';$N;$b++,$a^=7)
+            for($o=$N%$a,$N=$N/$a^0;$o--;$s=@$c[$o>2?$b+$N-($N&=-2)+$o=1:$b].$s);
         return $s;
     }
 
