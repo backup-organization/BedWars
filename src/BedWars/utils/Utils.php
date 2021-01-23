@@ -1,18 +1,15 @@
 <?php
 
-
 namespace BedWars\utils;
 
 use pocketmine\entity\Skin;
-use pocketmine\math\Vector3;
 use pocketmine\utils\Color;
 use pocketmine\utils\TextFormat;
+use pocketmine\math\Vector3;
 
+class Utils {
 
-class Utils
-{
-
-    const WOOL_COLOR = [
+    public const WOOL_COLOR = [
         '§a' => 5,
         '§c' => 14,
         '§e' => 4,
@@ -24,9 +21,9 @@ class Utils
 
     /**
      * @param string $color
-     * @return string
+     * @return int
      */
-    public static function colorIntoWool(string $color) : int{
+    public static function colorIntoWool(string $color) : int {
         return self::WOOL_COLOR[$color];
     }
 
@@ -34,7 +31,7 @@ class Utils
      * @param int $woolDamage
      * @return string
      */
-    public static function woolIntoColor(int $woolDamage) : string{
+    public static function woolIntoColor(int $woolDamage) : string {
         $replace = [
             '§a' => 5,
             '§c' => 14,
@@ -44,7 +41,6 @@ class Utils
             '§b' => 3,
             '§1' => 11
         ];
-
         return array_search($woolDamage, self::WOOL_COLOR);
     }
 
@@ -52,7 +48,7 @@ class Utils
      * @param string $color
      * @return Color
      */
-    public static function colorIntoObject(string $color) : Color{
+    public static function colorIntoObject(string $color) : Color {
         $replace = [
             '§a' => [0, 225, 0],
             '§c' => [225, 0, 0],
@@ -62,7 +58,6 @@ class Utils
             '§b' => [51, 255, 255],
             '§1' => [0, 0, 225]
         ];
-
         $a = $replace[$color];
         return new Color($a[0], $a[1], $a[2]);
     }
@@ -74,7 +69,7 @@ class Utils
      * @param float $pitch
      * @return Vector3
      */
-    public static function stringToVector(string $delimeter, string $string, &$yaw = 0.0, &$pitch = 0.0) : Vector3{
+    public static function stringToVector(string $delimeter, string $string, &$yaw = 0.0, &$pitch = 0.0) : Vector3 {
         $split = explode($delimeter, $string);
         if(isset($split[3]) && isset($split[4])){
             $yaw = floatval($split[3]);
@@ -88,7 +83,7 @@ class Utils
      * @param Vector3 $vector
      * @return string
      */
-    public static function vectorToString(string $delimeter, Vector3 $vector, $yaw = 0.0, $pitch = 0.0) : string{
+    public static function vectorToString(string $delimeter, Vector3 $vector, $yaw = 0.0, $pitch = 0.0) : string {
         $array = [$vector->getX(), $vector->getY(), $vector->getZ()];
         if($yaw > 0 && $pitch > 0){
             $array[] = $yaw;
@@ -96,19 +91,19 @@ class Utils
         }
         $string = "";
         foreach($array as $splitValue){
-            $string.=$splitValue . ":";
+            $string.= $splitValue . ":";
         }
         return $string;
     }
 
     /**
-     * @param $N
+     * @param int $N
      * @return string
      */
-    public static function rome($N){
+    public static function rome(int $N) {
         $c='IVXLCDM';
-        for($a=5,$b=$s='';$N;$b++,$a^=7)//todo add 2 sector
-            for($o=$N%$a,$N=$N/$a^0;$o--;$s=@$c[$o>2?$b+$N-($N&=-2)+$o=1:$b].$s);
+        for($a = 5, $b = $s = ''; $N; $b++, $a^ =7)
+            for($o = $N % $a, $N = $N / $a^ 0; $o--; $s = @$c[$o > 2 ? $b + $N - ($N & =- 2) + $o =1 : $b]. $s);
         return $s;
     }
 
@@ -116,8 +111,7 @@ class Utils
      * @param string $path
      * @return Skin|null
      */
-    public static function getSkinFromFile(string $path) : ?Skin{
-
+    public static function getSkinFromFile(string $path) : ?Skin {
         $img = @imagecreatefrompng($path);
         $bytes = '';
         $l = (int) @getimagesize($path)[1];
@@ -134,6 +128,4 @@ class Utils
         @imagedestroy($img);
         return new Skin("Standard_CustomSlim", $bytes);
     }
-
-
 }

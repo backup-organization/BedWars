@@ -1,25 +1,22 @@
 <?php
 
-
 namespace BedWars\game\shop;
-
 
 use BedWars\BedWars;
 use BedWars\game\Game;
 use BedWars\utils\Utils;
+use pocketmine\Player;
+use pocketmine\item\Item;
 use pocketmine\item\Armor;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\EnchantmentInstance;
-use pocketmine\item\Item;
 use pocketmine\network\mcpe\protocol\ModalFormRequestPacket;
-use pocketmine\Player;
 
-class ItemShop
-{
+class ItemShop {
 
-    const PURCHASE_TYPE_IRON = 0;
-    const PURCHASE_TYPE_GOLD = 1;
-    const PURCHASE_TYPE_EMERALD = 2;
+    public const PURCHASE_TYPE_IRON = 0;
+    public const PURCHASE_TYPE_GOLD = 1;
+    public const PURCHASE_TYPE_EMERALD = 2;
 
     /**
      * @var array $shopWindows
@@ -108,17 +105,17 @@ class ItemShop
      * @param int $category
      * @return mixed
      */
-    public static function getCategory(int $category){
+    public static function getCategory(int $category) {
         return self::$shopWindows[$category];
     }
 
     /**
      * @param int $id
-     * @param $data
-     * @param Player $p
+     * @param int $data
+     * @param Player $player
      * @param BedWars $plugin
      */
-    public static function handleTransaction(int $id, $data, Player $p, BedWars $plugin){
+    public static function handleTransaction(int $id, int $data, Player $player, BedWars $plugin) {
         if(is_null($data)){
             return;
         }
@@ -127,7 +124,7 @@ class ItemShop
         $price = $itemData['price'];
         $id = $itemData['item']['id'];
         $damage = (int)$itemData['item']['damage'];
-        $p->sendMessage($itemData["amount"] . " & " . $itemData["price"]);
+        $player->sendMessage($itemData["amount"] . " & " . $itemData["price"]);
         $check = "";
         $type = $itemData['type'];
         $typeString = "";
@@ -136,69 +133,62 @@ class ItemShop
             case self::PURCHASE_TYPE_IRON;
                 $typeString = "iron";
                 $removeItem = Item::get(Item::IRON_INGOT, 0, $price);
-                $check = $p->getInventory()->contains(Item::get(Item::IRON_INGOT, $damage, $price));
+                $check = $player->getInventory()->contains(Item::get(Item::IRON_INGOT, $damage, $price));
                 break;
             case self::PURCHASE_TYPE_GOLD;
                 $typeString = "gold";
                 $removeItem = Item::get(Item::GOLD_INGOT, 0 , $price);
-                $check = $p->getInventory()->contains(Item::get(Item::GOLD_INGOT, $damage, $price));
+                $check = $player->getInventory()->contains(Item::get(Item::GOLD_INGOT, $damage, $price));
                 break;
             case self::PURCHASE_TYPE_EMERALD;
                 $typeString = "emerald";
                 $removeItem = Item::get(Item::EMERALD, 0, $price);
-                $check = $p->getInventory()->contains(Item::get(Item::EMERALD, $damage, $price));
+                $check = $player->getInventory()->contains(Item::get(Item::EMERALD, $damage, $price));
                 break;
         }
-
         if(!$check){
-            $p->sendMessage("§cYou don't have enough " . strtolower(ucfirst($typeString)) . " to purchase this item!");
+            $player->sendMessage("§cYou don't have enough " . strtolower(ucfirst($typeString)) . " to purchase this item!");
             return;
         }
-
-        $playerTeam = $plugin->getPlayerTeam($p);
+        $playerTeam = $plugin->getPlayerTeam($player);
         if($playerTeam == null)return;
-
-
         if($id == Item::WOOL){
             $damage = Utils::colorIntoWool($playerTeam->getColor());
-        }elseif(Item::get($id) instanceof Armor){
-            self::handleArmorTransaction($data, $p);
+        } else if(Item::get($id) instanceof Armor){
+            self::handleArmorTransaction($data, $player);
             return;
         }
         $item = Item::get($id, $damage, $amount);
         $wasPurchased = false;
-
         //handle custom sword transactions
-        foreach($p->getInventory()->getContents() as $index => $content){
-            if(self::isSword($content->getId()) && self::isSword($id)) {
+        foreach($player->getInventory()->getContents() as $index => $content){
+            if(self::isSword($content->getId()) && self::isSword($id)){
                 $wasPurchased = true;
-                if ($id !== $content->getId()) {
-                    $p->getInventory()->removeItem($content);
-                    $p->getInventory()->setItem($index, $item);
-                }else{
-                    $p->sendMessage("§cYou already have this sword!");
+                if($id !== $content->getId()){
+                    $player->getInventory()->removeItem($content);
+                    $player->getInventory()->setItem($index, $item);
+                } else {
+                    $player->sendMessage("§cYou already have this sword!");
                     return;
                 }
             }
         }
-        $p->sendMessage("§aYou have sucesfully purchased §e" . $itemData['name'] . " §afor §e" . $price . " " .  ucfirst($typeString));
+        $player->sendMessage("§aYou have sucesfully purchased §e" . $itemData['name'] . " §afor §e" . $price . " " .  ucfirst($typeString));
         if($wasPurchased){
             return;
         }
-
         if($id == Item::BOW){
             self::handleBowTransaction($data, $item);
         }
-
-        $p->getInventory()->removeItem($removeItem);
-        $p->getInventory()->addItem($item);
+        $player->getInventory()->removeItem($removeItem);
+        $player->getInventory()->addItem($item);
     }
 
     /**
      * @param int $data
-     * @param Player $p
+     * @param Player $player
      */
-    public static function handleArmorTransaction(int $data, Player $p){
+    public static function handleArmorTransaction(int $data, Player $player) {
         $data = intval($data);
         $boots = "";
         $leggings = "";
@@ -215,15 +205,15 @@ class ItemShop
                 $boots = Item::get(Item::DIAMOND_BOOTS);
                 $leggings = Item::get(Item::DIAMOND_LEGGINGS);
         }
-        $p->getArmorInventory()->setBoots($boots);
-        $p->getArmorInventory()->setLeggings($leggings);
+        $player->getArmorInventory()->setBoots($boots);
+        $player->getArmorInventory()->setLeggings($leggings);
     }
 
     /**
      * @param int $data
      * @param Item $item
      */
-    public static function handleBowTransaction(int $data, Item $item){
+    public static function handleBowTransaction(int $data, Item $item) {
         switch ($data){
             case 1;
                 $enchantment = new EnchantmentInstance(Enchantment::getEnchantment(Enchantment::POWER), 1);
@@ -242,7 +232,7 @@ class ItemShop
      * @param int $itemId
      * @return bool
      */
-    public static function isSword(int $itemId){
+    public static function isSword(int $itemId) {
         $swords = [Item::IRON_SWORD, Item::STONE_SWORD, Item::WOODEN_SWORD, Item::DIAMOND_SWORD];
         if(in_array($itemId, $swords)){
             return true;
@@ -254,7 +244,7 @@ class ItemShop
      * @param int $itemId
      * @return bool
      */
-    public static function isArmor(int $itemId){
+    public static function isArmor(int $itemId) {
         $armors = [Item::CHAIN_BOOTS, Item::CHAIN_BOOTS, Item::IRON_BOOTS, Item::IRON_LEGGINGS, Item::DIAMOND_BOOTS, Item::DIAMOND_LEGGINGS];
         if(in_array($itemId, $armors)){
             return true;
@@ -263,9 +253,9 @@ class ItemShop
     }
 
     /**
-     * @param Player $p
+     * @param Player $player
      */
-    public static function sendDefaultShop(Player $p){
+    public static function sendDefaultShop(Player $player) {
         $data['title'] = "Item Shop";
         $data['type'] = "form";
         $data['content'] = "";
@@ -275,20 +265,18 @@ class ItemShop
             $button['image']['data'] = $windows['image'];
             $data['buttons'][] = $button;
         }
-
         $packet = new ModalFormRequestPacket();
         $packet->formId = 50;
         $packet->formData = json_encode($data);
-        $p->dataPacket($packet);
-
+        $player->dataPacket($packet);
     }
 
 
     /**
-     * @param Player $p
+     * @param Player $player
      * @param int $page
      */
-    public static function sendPage(Player $p, int $page){
+    public static function sendPage(Player $player, int $page) {
         $formId = $page;
         $data['title'] = 'Page ' . $page;
         $data['type'] = 'form';
@@ -303,14 +291,9 @@ class ItemShop
             }
             $data['buttons'][] = $button;
         }
-
         $packet = new ModalFormRequestPacket();
         $packet->formId = $formId;
         $packet->formData = json_encode($data);
-        $p->dataPacket($packet);
-
+        $player->dataPacket($packet);
     }
-
-
-
 }

@@ -83,7 +83,7 @@ class UpgradeShop {
             foreach ($playerTeam->getPlayers() as $player) {
                     foreach ($player->getInventory()->getContents() as $index => $item) {
                         if($item instanceof Sword){
-                            $item->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(Enchantment::SHARPNESS)), $playerTeam->getUpgrade('sharpenedSwords'));
+                            $item->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantmentByName(Enchantment::SHARPNESS)), $playerTeam->getUpgrade('sharpenedSwords'));
                             $player->getInventory()->setItem($index, $item);
                         }
                     }
