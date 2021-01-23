@@ -20,8 +20,8 @@ class Utils {
     ];
 
     /**
-     * @param int $color
-     * @return string
+     * @param string $color
+     * @return int
      */
     public static function colorIntoWool(string $color) : int {
         return self::WOOL_COLOR[$color];
