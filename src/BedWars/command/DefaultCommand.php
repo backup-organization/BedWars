@@ -73,7 +73,6 @@ class DefaultCommand extends PluginCommand {
     public function sendFormCustom(Player $player, CustomForm $form, string $command) : void {
         $errors = $this->getErrorsForCommand($player, $command);
         $values = $this->getValuesForCommand($player, $command);
-
         $form->setTitle("BedWars: Setup Manager");
         switch ($command){
             case "create";
@@ -82,7 +81,6 @@ class DefaultCommand extends PluginCommand {
             $form->addInput(isset($errors[2]) ? "Players per team: " . $errors[2] : "Players per team", "Integer", isset($values[2]) ? $values[2] : "");
             $form->addInput(isset($errors[3]) ? "Start time: " . $errors[3] : "Start time", "Integer", isset($values[3]) ? $values[3] : "");
             $form->addInput(isset($errors[4]) ? "Map name: " . $errors[4] : "Map name", "String", isset($values[4]) ? $values[4] : "");
-          
             $form->sendToPlayer($player);
             break;
             case 'addteam';
@@ -122,12 +120,11 @@ class DefaultCommand extends PluginCommand {
             $form->sendToPlayer($player);
             break;
         }
-
         if($errors !== null) {
             unset($this->cachedCommandResponse[$player->getRawUniqueId()]);
         }
         $this->cachedFormResponse[$command] = $form;
-        $refOb = new \ReflectionObject($this->cachedFormResponse[$command]);
+        $refOb = new ReflectionObject($this->cachedFormResponse[$command]);
         $property = $refOb->getProperty('data');
         $property->setAccessible(true);
         $clonedData = $property->getValue($this->cachedFormResponse[$command]);
@@ -152,9 +149,9 @@ class DefaultCommand extends PluginCommand {
                 if($data === null) {
                     return;
                 }
-                $gameClicked = $this->getPlugin()->games($data);
+                $gameClicked = $this->plugin->games($data);
             });
-            foreach($this->getPlugin()->games as $game){
+            foreach($this->plugin->games as $game){
                 $listForm->addButton(TextFormat::YELLOW . $game->getName() . "\n" . TextFormat::RESET . "Click to edit");
             }
             break;
@@ -174,7 +171,7 @@ class DefaultCommand extends PluginCommand {
                         $error[0] = TextFormat::RED . "Too short";
                         goto b;
                     }
-                    if($this->getPlugin()->gameExists($data[0])){
+                    if($this->plugin->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Already exists";
                     }
                 } else {
@@ -220,10 +217,10 @@ class DefaultCommand extends PluginCommand {
                     if(strlen($data[4]) <= 1){
                         $error[4] = TextFormat::RED . "Too short";
                     }
-                    if(!$this->getPlugin()->getServer()->loadLevel($data[4])){
+                    if(!$this->plugin->getServer()->loadLevel($data[4])){
                         $error[4] = TextFormat::RED . "Level not found or corrupt";
                     }
-                    if(!$this->getPlugin()->getServer()->isLevelLoaded($data[4])){
+                    if(!$this->plugin->getServer()->isLevelLoaded($data[4])){
                         $error[4] = TextFormat::RED . "Level not loaded";
                     }
                 } else {
@@ -234,7 +231,7 @@ class DefaultCommand extends PluginCommand {
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'create', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['create'], 'create');
                 } else {
-                    $this->getPlugin()->createGame($data[0], $data[1], $data[2], $data[3], $data[4]);
+                    $this->plugin->createGame($data[0], $data[1], $data[2], $data[3], $data[4]);
                     $player->sendMessage(TextFormat::GREEN . "Game created");
                 }
             });
@@ -252,7 +249,7 @@ class DefaultCommand extends PluginCommand {
                 }
                 $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
-                    if(!$this->getPlugin()->gameExists($data[0])){
+                    if(!$this->plugin->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
                 } else {
@@ -268,7 +265,7 @@ class DefaultCommand extends PluginCommand {
                     if(!$find){
                         $error[1] = TextFormat::RED . "Invalid team";
                     }
-                    if($this->getPlugin()->teamExists($data[0], array_keys(BedWars::TEAMS)[$data[1]])){
+                    if($this->plugin->teamExists($data[0], array_keys(BedWars::TEAMS)[$data[1]])){
                         $error[1] = TextFormat::RED . "Already exists for " . $data[0];
                     }
                 } else {
@@ -278,7 +275,7 @@ class DefaultCommand extends PluginCommand {
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'addteam', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['addteam'], 'addteam');
                 } else {
-                    $this->getPlugin()->addTeam($data[0], array_keys(BedWars::TEAMS)[$data[1]]);
+                    $this->plugin->addTeam($data[0], array_keys(BedWars::TEAMS)[$data[1]]);
                     $player->sendMessage(TextFormat::GREEN . "Team added");
                 }
             });
@@ -296,7 +293,7 @@ class DefaultCommand extends PluginCommand {
                 }
                 $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
-                    if(!$this->getPlugin()->gameExists($data[0])){
+                    if(!$this->plugin->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
                 } else {
@@ -306,7 +303,7 @@ class DefaultCommand extends PluginCommand {
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'delete', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['delete'], 'delete');
                 } else {
-                    $this->getPlugin()->deleteGame($data[0]);
+                    $this->plugin->deleteGame($data[0]);
                     $player->sendMessage(TextFormat::GREEN . "Game deleted");
                 }
             });
@@ -323,7 +320,7 @@ class DefaultCommand extends PluginCommand {
                 }
                 $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
-                    if(!$this->getPlugin()->gameExists($data[0])){
+                    if(!$this->plugin->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
                 } else {
@@ -351,7 +348,7 @@ class DefaultCommand extends PluginCommand {
                     $error[3] = TextFormat::RED . "Column can't be blank";
                 }
                 if(isset($data[4]) && $data[4] !== ""){
-                    if(!$this->getPlugin()->getServer()->isLevelLoaded($data[4])){
+                    if(!$this->plugin->getServer()->isLevelLoaded($data[4])){
                         $error[4] = TextFormat::RED . "Level not loaded";
                     }
                 } else {
@@ -377,7 +374,7 @@ class DefaultCommand extends PluginCommand {
                           }
                       }
                      --$void_y;
-                    $this->getPlugin()->setLobby($data[0], $data[1], $data[2], $data[3], $data[4], $void_y);
+                    $this->plugin->setLobby($data[0], $data[1], $data[2], $data[3], $data[4], $void_y);
                     $player->sendMessage(TextFormat::GREEN . "Lobby set");
                 }
             });
@@ -394,14 +391,14 @@ class DefaultCommand extends PluginCommand {
                 }
                 $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
-                    if(!$this->getPlugin()->gameExists($data[0])){
+                    if(!$this->plugin->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
                 } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
                 if(isset($data[1]) && $data[1] !== ""){
-                    if(!$this->getPlugin()->teamExists($data[0], strtolower(array_keys(BedWars::TEAMS)[$data[1]]))){
+                    if(!$this->plugin->teamExists($data[0], strtolower(array_keys(BedWars::TEAMS)[$data[1]]))){
                         $error[1] = TextFormat::RED . "Doesn't exist";
                     }
                 } else {
@@ -432,7 +429,7 @@ class DefaultCommand extends PluginCommand {
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'setposition', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['setposition'], 'setposition');
                 } else {
-                    $this->getPlugin()->setTeamPosition($data[0], array_keys(BedWars::TEAMS)[$data[1]], $data[2], (int)$data[3], (int)$data[4], (int)$data[5], (float) $player->getYaw(), (float) $player->getPitch());
+                    $this->plugin->setTeamPosition($data[0], array_keys(BedWars::TEAMS)[$data[1]], $data[2], (int)$data[3], (int)$data[4], (int)$data[5], (float) $player->getYaw(), (float) $player->getPitch());
                     $player->sendMessage(TextFormat::GREEN . "Position set");
                 }
             });
@@ -449,14 +446,14 @@ class DefaultCommand extends PluginCommand {
                 }
                 $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
-                    if(!$this->getPlugin()->gameExists($data[0])){
+                    if(!$this->plugin->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
                 } else {
                     $error[0] = TextFormat::RED . "Column can't be blank";
                 }
                 if(isset($data[1]) && $data[1] !== ""){
-                    if(!$this->getPlugin()->teamExists($data[0], strtolower(array_keys(BedWars::TEAMS)[$data[1]]))){
+                    if(!$this->plugin->teamExists($data[0], strtolower(array_keys(BedWars::TEAMS)[$data[1]]))){
                         $error[1] = TextFormat::RED . "Doesn't exist";
                     }
                 } else {
@@ -466,7 +463,7 @@ class DefaultCommand extends PluginCommand {
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'setbed', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['setbed'], 'setbed');
                 } else {
-                    $this->getPlugin()->bedSetup[$player->getRawUniqueId()] = ['game' => $data[0], 'team' => array_keys(BedWars::TEAMS)[$data[1]], 'step' => 1];
+                    $this->plugin->bedSetup[$player->getRawUniqueId()] = ['game' => $data[0], 'team' => array_keys(BedWars::TEAMS)[$data[1]], 'step' => 1];
                     $player->sendMessage(TextFormat::RED . "Break the bed");
                 }
             });
@@ -479,7 +476,7 @@ class DefaultCommand extends PluginCommand {
                 }
                 $error = [];
                 if(isset($data[0]) && $data[0] !== ""){
-                    if(!$this->getPlugin()->gameExists($data[0])){
+                    if(!$this->plugin->gameExists($data[0])){
                         $error[0] = TextFormat::RED . "Doesn't exist";
                     }
                 } else {
@@ -496,9 +493,9 @@ class DefaultCommand extends PluginCommand {
                     $this->cachedCommandResponse[$player->getRawUniqueId()] = array('command' => 'setgenerator', 'errors' => $error, 'values' => $data);
                     $this->sendFormCustom($player, $this->cachedFormResponse['setgenerator'], 'setgenerator');
                 } else if($generator !== null){
-                    $arenaData = $this->getPlugin()->getGameData($data[0]);
+                    $arenaData = $this->plugin->getGameData($data[0]);
                     $arenaData['generatorInfo'][$data[0]][] = ['type' => $generator, 'position' => Utils::vectorToString("", $player), 'game'];
-                    $this->getPlugin()->writeGameData($data[0], $arenaData);
+                    $this->plugin->writeGameData($data[0], $arenaData);
                     $player->sendMessage(TextFormat::GREEN . "Generator added ".$generator);
                 }
             });
@@ -508,9 +505,9 @@ class DefaultCommand extends PluginCommand {
     }
     
     /**
-     * @return BedWars|Plugin $bedwars
+     * @return BedWars|Plugin $plugin
      */
-    public function getPlugin() : Plugin {
+    public function getPlugin(): Plugin {
         return $this->plugin;
     }
 }
