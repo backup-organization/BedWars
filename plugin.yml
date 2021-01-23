@@ -1,0 +1,7 @@
+---
+name: BedWars
+main: BedWars\BedWars
+version: 1.0-Beta
+api: 3.0.0
+author: boi1216
+...
