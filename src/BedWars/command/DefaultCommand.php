@@ -45,7 +45,7 @@ class DefaultCommand extends PluginCommand {
      * @param string $command
      * @return array|null
      */
-    public function getErrorsForCommand(Player $player, string $command) : ?array{
+    public function getErrorsForCommand(Player $player, string $command) : ?array {
         if(!isset($this->cachedCommandResponse[$player->getRawUniqueId()]))return null;
         $errors = $this->cachedCommandResponse[$player->getRawUniqueId()];
         if($errors['command'] == $command && count($errors['errors']) > 0){
@@ -59,7 +59,7 @@ class DefaultCommand extends PluginCommand {
      * @param string $command
      * @return array|null
      */
-    public function getValuesForCommand(Player $player, string $command) : ?array{
+    public function getValuesForCommand(Player $player, string $command) : ?array {
         if(!isset($this->cachedCommandResponse[$player->getRawUniqueId()]))return null;
         $values = $this->cachedCommandResponse[$player->getRawUniqueId()];
         if($values['command'] == $command && count($values['values']) > 0){
@@ -68,7 +68,7 @@ class DefaultCommand extends PluginCommand {
         return null;
     }
 
-    public function sendFormCustom(Player $player, CustomForm $form, string $command) : void{
+    public function sendFormCustom(Player $player, CustomForm $form, string $command) : void {
         $errors = $this->getErrorsForCommand($player, $command);
         $values = $this->getValuesForCommand($player, $command);
 
@@ -218,10 +218,10 @@ class DefaultCommand extends PluginCommand {
                     if(strlen($data[4]) <= 1){
                         $error[4] = TextFormat::RED . "Too short";
                     }
-                    if(!this->getPlugin()->getServer()->loadLevel($data[4])){
+                    if(!$this->getPlugin()->getServer()->loadLevel($data[4])){
                         $error[4] = TextFormat::RED . "Level not found or corrupt";
                     }
-                    if(!this->getPlugin()->getServer()->isLevelLoaded($data[4])){
+                    if(!$this->getPlugin()->getServer()->isLevelLoaded($data[4])){
                         $error[4] = TextFormat::RED . "Level not loaded";
                     }
                 } else {
